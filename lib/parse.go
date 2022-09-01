@@ -16,6 +16,21 @@ var warnCount int
 var errorDrives []string
 var warnDrives []string
 
+func Unique(slice []string) []string {
+	// create a map with all the values as key
+	uniqMap := make(map[string]struct{})
+	for _, v := range slice {
+		uniqMap[v] = struct{}{}
+	}
+
+	// turn the map keys into a slice
+	uniqSlice := make([]string, 0, len(uniqMap))
+	for v := range uniqMap {
+		uniqSlice = append(uniqSlice, v)
+	}
+	return uniqSlice
+}
+
 // LogParse parses logs
 func LogParse(path string) {
 	pdRegex := regexp.MustCompile(`PD [0-9][0-9,A-F]`)
@@ -41,20 +56,24 @@ func LogParse(path string) {
 			match := pdRegex.FindStringSubmatch(line)
 			warnDrv = append(warnDrives, match[0])
 			color.Set(color.FgYellow, color.Underline)
-			fmt.Println(line)
+			// fmt.Println(line)
 			color.Unset()
 		} else if strings.Contains(line, "Puncturing bad") {
 			errorCount++
 			match := pdRegex.FindStringSubmatch(line)
-			errorDrv = append(errorDrives, match[0])
+			// fmt.Println(match)
+			errorDrv = append(errorDrv, match[0])
+			errorDrives = Unique(errorDrv)
 			color.Set(color.FgRed, color.Bold)
 			fmt.Println(line)
 			color.Unset()
 		}
 	}
-	fmt.Printf("Warnings found on drives %s", warnDrv)
-	if errorDrv != nil {
-		fmt.Printf("Errors found on drives %s", errorDrv)
+	if warnDrv != nil {
+		fmt.Printf("Warnings found on drives %s", warnDrv)
+	}
+	if errorDrives != nil {
+		fmt.Printf("Errors found on drives %s", errorDrives)
 	}
 	return
 }
